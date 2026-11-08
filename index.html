@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🎓 Student Attendance System</h1>
+                <p class="current-date" id="currentDate"></p>
+            </div>
+        </header>
+
+        <!-- Student Form Section -->
+        <section class="form-section">
+            <h2>Add New Student</h2>
+            <form id="studentForm" class="student-form">
+                <div class="form-group">
+                    <label for="studentName">Student Name</label>
+                    <input type="text" id="studentName" placeholder="Enter student name" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentId">Student ID</label>
+                    <input type="text" id="studentId" placeholder="Enter student ID" required>
+                </div>
+                <button type="submit" class="btn btn-add">
+                    <span>➕</span> Add Student
+                </button>
+            </form>
+        </section>
+
+        <!-- Search and Filter Section -->
+        <section class="controls-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search by name or ID...">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="present">✅ Present</button>
+                <button class="filter-btn" data-filter="absent">❌ Absent</button>
+            </div>
+        </section>
+
+        <!-- Attendance Table Section -->
+        <section class="table-section">
+            <h2>Attendance Records</h2>
+            <div class="table-wrapper">
+                <table id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Student ID</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic rows will be inserted here -->
+                    </tbody>
+                </table>
+                <div id="noRecords" class="no-records">
+                    <p>📋 No students found. Add a student to get started!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section class="summary-section">
+            <h2>📊 Attendance Summary</h2>
+            <div class="summary-cards">
+                <div class="summary-card total">
+                    <div class="card-icon">👥</div>
+                    <div class="card-content">
+                        <h3>Total Students</h3>
+                        <p id="totalStudents">0</p>
+                    </div>
+                </div>
+                <div class="summary-card present">
+                    <div class="card-icon">✅</div>
+                    <div class="card-content">
+                        <h3>Present</h3>
+                        <p id="totalPresent">0</p>
+                    </div>
+                </div>
+                <div class="summary-card absent">
+                    <div class="card-icon">❌</div>
+                    <div class="card-content">
+                        <h3>Absent</h3>
+                        <p id="totalAbsent">0</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Clear All Button -->
+        <div class="actions">
+            <button id="clearAllBtn" class="btn btn-clear">
+                <span>🗑️</span> Clear All Records
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

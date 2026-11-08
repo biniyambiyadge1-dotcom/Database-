@@ -1,0 +1,399 @@
+--HIMS
+drop database if exists HIMS;
+create database if not exists HIMS;
+USE HIMS;
+-- Departments Table: 
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY AUTO_INCREMENT,
+    DepartmentName VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Doctors Table: Stores doctor information
+CREATE TABLE Doctors (
+    DoctorID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    Specialty VARCHAR(100),
+    DepartmentID INT,
+    Email VARCHAR(100) UNIQUE,
+    PhoneNumber VARCHAR(20),
+    FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID) ON DELETE SET NULL
+);
+-- Patients Table: Stores patient information
+CREATE TABLE Patients (
+    PatientID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    DateOfBirth DATE,
+    Gender ENUM('Male', 'Female', 'Other'),
+    Address VARCHAR(255),
+    PhoneNumber VARCHAR(20) UNIQUE,
+    Email VARCHAR(100) UNIQUE
+);
+-- Appointments Table: Stores appointment details
+CREATE TABLE Appointments (
+    AppointmentID INT PRIMARY KEY AUTO_INCREMENT,
+    PatientID INT,
+    DoctorID INT,
+    AppointmentDate DATETIME NOT NULL,
+    Reason VARCHAR(255),
+    Status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID) ON DELETE CASCADE
+);
+
+-- Medical Records Table: Stores medical history 
+CREATE TABLE MedicalRecords (
+    RecordID INT PRIMARY KEY AUTO_INCREMENT,
+    PatientID INT,
+    DoctorID INT,
+    AppointmentID INT,
+    Diagnosis TEXT,
+    Treatment TEXT,
+    RecordDate DATE NOT NULL,
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID) ON DELETE SET NULL,
+    FOREIGN KEY (AppointmentID) REFERENCES Appointments(AppointmentID) ON DELETE SET NULL
+);
+-- Prescriptions Table: Stores prescription details linked to medical records
+CREATE TABLE Prescriptions (
+    PrescriptionID INT PRIMARY KEY AUTO_INCREMENT,
+    RecordID INT,
+    Medication VARCHAR(100) NOT NULL,
+    Dosage VARCHAR(50),
+    Instructions TEXT,
+    FOREIGN KEY (RecordID) REFERENCES MedicalRecords(RecordID) ON DELETE CASCADE
+);
+-- Bills Table: Stores billing information
+CREATE TABLE Bills (
+    BillID INT PRIMARY KEY AUTO_INCREMENT,
+    PatientID INT,
+    AppointmentID INT,
+    Amount DECIMAL(10,2) NOT NULL,
+    BillDate DATE NOT NULL,
+    Paid BOOLEAN DEFAULT FALSE,
+    Description VARCHAR(255),
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID) ON DELETE CASCADE,
+    FOREIGN KEY (AppointmentID) REFERENCES Appointments(AppointmentID) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_doctor_department ON Doctors(DepartmentID);
+CREATE INDEX idx_appointment_patient ON Appointments(PatientID);
+CREATE INDEX idx_appointment_doctor ON Appointments(DoctorID);
+CREATE INDEX idx_medicalrecord_patient ON MedicalRecords(PatientID);
+CREATE INDEX idx_bill_patient ON Bills(PatientID);
+
+-- Insert Departments 
+INSERT INTO Departments (DepartmentName) VALUES 
+('Internal Medicine'),
+('Pediatrics'),
+('Surgery'),
+('Gynecology'),
+('Cardiology'),
+('Orthopedics'),
+('Radiology'),
+('Neurology');
+
+-- Doctors 
+INSERT INTO Doctors (FirstName, LastName, Specialty, DepartmentID, Email, PhoneNumber) VALUES 
+('Abebe', 'Kebede', 'Cardiologist', 5, 'abebe.kebede@hospital.et', '+251-911-123456'),
+('Selamawit', 'Tadesse', 'Pediatrician', 2, 'selamawit.tadesse@hospital.et', '+251-911-234567'),
+('Yohannes', 'Mengistu', 'General Surgeon', 3, 'yohannes.mengistu@hospital.et', '+251-911-345678'),
+('Meron', 'Getachew', 'Obstetrician/Gynecologist', 4, 'meron.getachew@hospital.et', '+251-911-456789'),
+('Tewodros', 'Alemu', 'Orthopedic Surgeon', 6, 'tewodros.alemu@hospital.et', '+251-911-567890'),
+('Genet', 'Assefa', 'Radiologist', 7, 'genet.assefa@hospital.et', '+251-911-678901'),
+('Dawit', 'Haile', 'Neurologist', 8, 'dawit.haile@hospital.et', '+251-911-789012'),
+('Aster', 'Worku', 'Internist', 1, 'aster.worku@hospital.et', '+251-911-890123');
+
+-- Patients
+INSERT INTO Patients (FirstName, LastName, DateOfBirth, Gender, Address, PhoneNumber, Email) VALUES 
+('Fatuma', 'Ahmed', '1992-07-15', 'Female', 'Addis Ababa, Bole', '+251-922-111222', 'fatuma.ahmed@gmail.com'),
+('Birhanu', 'Gebremedhin', '1985-03-22', 'Male', 'Addis Ababa, Yeka', '+251-933-222333', 'birhanu.g@gmail.com'),
+('Eyerusalem', 'Solomon', '2000-11-10', 'Female', 'Addis Ababa, Kirkos', '+251-944-333444', 'eyerusalem.solomon@yahoo.com'),
+('Kidane', 'Tekle', '1978-05-05', 'Male', 'Addis Ababa, Lideta', '+251-955-444555', 'kidane.tekle@outlook.com'),
+('Lemlem', 'Berhanu', '1998-09-18', 'Female', 'Addis Ababa, Arada', '+251-966-555666', 'lemlem.berhanu@gmail.com'),
+('Solomon', 'Tesfaye', '1980-01-30', 'Male', 'Addis Ababa, Kolfe', '+251-977-666777', 'solomon.tesfaye@gmail.com'),
+('Hiwot', 'Demissie', '1995-12-25', 'Female', 'Addis Ababa, Nifas Silk', '+251-988-777888', 'hiwot.demissie@yahoo.com'),
+('Getachew', 'Mulugeta', '1988-04-12', 'Male', 'Addis Ababa, Akaki', '+251-999-888999', 'getachew.mulu@gmail.com'),
+('Tsion', 'Bekele', '1993-06-20', 'Female', 'Addis Ababa, Piassa', '+251-911-234889', 'tsion.bekele@gmail.com'),
+('Muluken', 'Yilma', '1982-10-05', 'Male', 'Addis Ababa, Merkato', '+251-922-345678', 'muluken.y@gmail.com'),
+('Betelhem', 'Girma', '2001-02-14', 'Female', 'Addis Ababa, Mexico', '+251-933-456789', 'betelhem.girma@yahoo.com'),
+('Abinet', 'Tsegaye', '1975-08-30', 'Male', 'Addis Ababa, Kazanchis', '+251-944-567890', 'abinet.tsegaye@outlook.com'),
+('Rahel', 'Fikre', '1997-04-12', 'Female', 'Addis Ababa, Sarbet', '+251-955-678901', 'rahel.fikre@gmail.com'),
+('Zewdu', 'Negussie', '1987-11-18', 'Male', 'Addis Ababa, 4 Kilo', '+251-966-789012', 'zewdu.n@gmail.com'),
+('Sara', 'Abate', '2005-03-25', 'Female', 'Addis Ababa, Ayat', '+251-977-890123', 'sara.abate@yahoo.com'),
+('Ephrem', 'Kassahun', '1980-07-08', 'Male', 'Addis Ababa, Jemo', '+251-988-901234', 'ephrem.k@gmail.com'),
+('Meskerem', 'Dereje', '1994-09-15', 'Female', 'Addis Ababa, Lebu', '+251-999-012345', 'meskerem.d@gmail.com'),
+('Fikadu', 'Wondimu', '1989-12-01', 'Male', 'Addis Ababa, Megenagna', '+251-911-123567', 'fikadu.w@gmail.com'),
+('Helen', 'Teshome', '1996-05-22', 'Female', 'Addis Ababa, CMC', '+251-922-234567', 'helen.teshome@gmail.com'),
+('Yared', 'Alemayehu', '1979-01-17', 'Male', 'Addis Ababa, Gurd Shola', '+251-933-345678', 'yared.a@gmail.com');
+
+-- Appointments
+INSERT INTO Appointments (PatientID, DoctorID, AppointmentDate, Reason, Status) VALUES 
+(1, 1, '2025-12-25 09:30:00', 'Routine heart checkup', 'Scheduled'),
+(2, 3, '2025-12-26 14:00:00', 'Post-surgery follow-up', 'Scheduled'),
+(3, 2, '2025-12-24 10:00:00', 'Child vaccination and checkup', 'Scheduled'),
+(4, 5, '2025-12-28 10:30:00', 'Joint pain and swelling', 'Scheduled'),
+(5, 4, '2025-12-30 11:00:00', 'Routine antenatal care', 'Scheduled'),
+(6, 8, '2026-01-02 14:00:00', 'Chronic headache evaluation', 'Scheduled'),
+(7, 1, '2025-12-27 09:00:00', 'High blood pressure follow-up', 'Scheduled'),
+(8, 3, '2025-12-29 15:30:00', 'Abdominal pain consultation', 'Scheduled'),
+(9, 7, '2026-01-03 10:00:00', 'Chest X-ray review', 'Scheduled'),
+(10, 2, '2025-12-31 13:00:00', 'Child fever and cough', 'Scheduled'),
+(11, 6, '2026-01-04 11:30:00', 'Back pain assessment', 'Scheduled'),
+(12, 1, '2025-12-26 16:00:00', 'Palpitations checkup', 'Scheduled'),
+(13, 4, '2026-01-05 09:30:00', 'Postnatal follow-up', 'Scheduled'),
+(14, 8, '2025-12-30 16:30:00', 'Memory concerns', 'Scheduled'),
+(15, 5, '2026-01-06 10:00:00', 'Fracture follow-up', 'Scheduled'),
+(16, 1, '2025-12-29 11:00:00', 'Chest pain evaluation', 'Scheduled'),
+(17, 2, '2026-01-01 09:30:00', 'Infant wellness check', 'Scheduled'),
+(18, 6, '2026-01-07 14:00:00', 'Shoulder injury', 'Scheduled'),
+(19, 3, '2025-12-31 15:00:00', 'Wound dressing change', 'Scheduled');
+
+-- MedicalRecords 
+INSERT INTO MedicalRecords (PatientID, DoctorID, AppointmentID, Diagnosis, Treatment, RecordDate) VALUES 
+(1, 1, 1, 'Mild hypertension', 'Prescribed Lisinopril 10mg daily and lifestyle modifications', '2025-12-25'),
+(3, 2, 3, 'Healthy development, up-to-date vaccinations', 'Continue regular checkups every 6 months', '2025-12-24'),
+(4, 5, 4, 'Osteoarthritis of knee', 'Prescribed physiotherapy and Diclofenac gel', '2025-12-28'),
+(5, 4, 5, 'Normal pregnancy - 28 weeks', 'Iron and folic acid supplements continued', '2025-12-30'),
+(7, 1, 7, 'Hypertension Stage 2', 'Started Amlodipine 5mg daily, diet advice', '2025-12-27'),
+(8, 3, 8, 'Acute appendicitis (post-op)', 'Recovery good, remove stitches in 7 days', '2025-12-29'),
+(10, 2, 10, 'Viral upper respiratory infection', 'Symptomatic treatment, hydration', '2025-12-31'),
+(12, 1, 12, 'Arrhythmia - AF', 'Referred for ECG, started beta blocker', '2025-12-26'),
+(2, 3, 2, 'Post-operative recovery', 'Continue antibiotics and pain management', '2025-12-26'),
+(6, 8, 6, 'Tension headache', 'Stress management and prophylactic medication', '2026-01-02');
+
+-- Prescriptions 
+INSERT INTO Prescriptions (RecordID, Medication, Dosage, Instructions) VALUES 
+(1, 'Lisinopril', '10mg once daily', 'Take in the morning with or without food'),
+(1, 'Atorvastatin', '20mg at night', 'For cholesterol management'),
+(2, 'Paracetamol', '500mg as needed', 'For fever or pain in child, max 4 times daily'),
+(3, 'Amlodipine', '5mg once daily', 'Take in the evening'),
+(3, 'Hydrochlorothiazide', '12.5mg daily', 'Morning dose, monitor for dizziness'),
+(4, 'Diclofenac Gel', 'Apply twice daily', 'On affected knee, avoid open wounds'),
+(5, 'Ferrous Sulfate + Folic Acid', '1 tablet daily', 'Take after meals to reduce stomach upset'),
+(7, 'Metoprolol', '50mg twice daily', 'Monitor heart rate'),
+(8, 'Co-amoxiclav', '625mg three times daily', 'Complete 5-day course'),
+(10, 'Ibuprofen', '400mg as needed', 'For headache relief');
+
+-- Bills 
+INSERT INTO Bills (PatientID, AppointmentID, Amount, BillDate, Paid, Description) VALUES 
+(1, 1, 1200.00, '2025-12-25', FALSE, 'Cardiology consultation and ECG'),
+(3, 3, 800.00, '2025-12-24', TRUE, 'Pediatric consultation and vaccination'),
+(2, 2, 2500.00, '2025-12-26', FALSE, 'Surgical follow-up consultation'),
+(4, 4, 1800.00, '2025-12-28', FALSE, 'Orthopedic consultation + X-ray'),
+(5, 5, 1000.00, '2025-12-30', TRUE, 'OB/GYN antenatal visit'),
+(7, 7, 1500.00, '2025-12-27', FALSE, 'Cardiology consultation + blood tests'),
+(8, 8, 3000.00, '2025-12-29', FALSE, 'Surgical post-op follow-up'),
+(10, 10, 900.00, '2025-12-31', TRUE, 'Pediatric urgent visit'),
+(12, 12, 2000.00, '2025-12-26', FALSE, 'Cardiology ECG and consultation'),
+(6, 6, 2200.00, '2026-01-02', FALSE, 'Neurology consultation + MRI referral'),
+(16, 16, 1600.00, '2025-12-29', FALSE, 'Cardiology emergency consult'),
+(17, 17, 750.00, '2026-01-01', TRUE, 'Newborn checkup'),
+(18, 18, 1900.00, '2026-01-07', FALSE, 'Orthopedic shoulder exam + injection');
+
+-- View all doctors with their department
+SELECT d.DoctorID, d.FirstName, d.LastName, d.Specialty, dep.DepartmentName
+FROM Doctors d
+JOIN Departments dep ON d.DepartmentID = dep.DepartmentID;
+
+-- View all upcoming appointments (after current date: December 24, 2025)
+SELECT a.AppointmentID, a.AppointmentDate, a.Reason, a.Status,
+       p.FirstName AS PatientFirst, p.LastName AS PatientLast,
+       d.FirstName AS DoctorFirst, d.LastName AS DoctorLast
+FROM Appointments a
+JOIN Patients p ON a.PatientID = p.PatientID
+JOIN Doctors d ON a.DoctorID = d.DoctorID
+WHERE a.AppointmentDate > '2025-12-24'
+ORDER BY a.AppointmentDate;
+
+-- View all appointments for a specific patient (e.g., PatientID = 1: Fatuma Ahmed)
+SELECT * FROM Appointments WHERE PatientID = 1;
+
+-- Full history of a patient (e.g., PatientID = 1)
+SELECT 
+    p.FirstName, p.LastName, p.DateOfBirth, p.Gender, p.PhoneNumber,
+    a.AppointmentDate, a.Reason, a.Status,
+    d.FirstName AS DoctorFirst, d.LastName AS DoctorLast,
+    mr.Diagnosis, mr.Treatment, mr.RecordDate
+FROM Patients p
+LEFT JOIN Appointments a ON p.PatientID = a.PatientID
+LEFT JOIN Doctors d ON a.DoctorID = d.DoctorID
+LEFT JOIN MedicalRecords mr ON a.AppointmentID = mr.AppointmentID
+WHERE p.PatientID = 1
+ORDER BY a.AppointmentDate DESC;
+
+-- All bills for a patient (e.g., PatientID = 1)
+SELECT b.BillID, b.Amount, b.BillDate, b.Paid, b.Description
+FROM Bills b
+WHERE b.PatientID = 1
+ORDER BY b.BillDate DESC;
+
+-- Total unpaid bills
+SELECT SUM(Amount) AS TotalUnpaid 
+FROM Bills 
+WHERE Paid = FALSE;
+
+-- Unpaid bills details
+SELECT 
+    b.BillID, b.Amount, b.BillDate, b.Description,
+    p.FirstName, p.LastName, p.PhoneNumber
+FROM Bills b
+JOIN Patients p ON b.PatientID = p.PatientID
+WHERE b.Paid = FALSE
+ORDER BY b.BillDate;
+
+-- Revenue summary (paid bills)
+SELECT 
+    COUNT(*) AS PaidBillsCount,
+    SUM(Amount) AS TotalRevenue
+FROM Bills 
+WHERE Paid = TRUE;
+
+-- Number of appointments per doctor
+SELECT 
+    d.FirstName, d.LastName, d.Specialty,
+    COUNT(a.AppointmentID) AS TotalAppointments
+FROM Doctors d
+LEFT JOIN Appointments a ON d.DoctorID = a.DoctorID
+GROUP BY d.DoctorID
+ORDER BY TotalAppointments DESC;
+
+-- Appointments per department
+SELECT 
+    dep.DepartmentName,
+    COUNT(a.AppointmentID) AS AppointmentCount
+FROM Departments dep
+LEFT JOIN Doctors d ON dep.DepartmentID = d.DepartmentID
+LEFT JOIN Appointments a ON d.DoctorID = a.DoctorID
+GROUP BY dep.DepartmentID
+ORDER BY AppointmentCount DESC;
+
+-- Search patient by name (partial match)
+SELECT PatientID, FirstName, LastName, PhoneNumber, Email
+FROM Patients
+WHERE FirstName LIKE '%Fatu%' OR LastName LIKE '%med%';
+
+-- Patients who have at least one appointment
+SELECT 
+    p.PatientID, 
+    p.FirstName, p.LastName, 
+    a.AppointmentID, 
+    a.AppointmentDate, 
+    a.Reason
+FROM Patients p
+INNER JOIN Appointments a ON p.PatientID = a.PatientID
+ORDER BY a.AppointmentDate;
+
+-- All patients, including those with no appointments
+SELECT 
+    p.PatientID, 
+    p.FirstName, p.LastName, 
+    a.AppointmentID, 
+    a.AppointmentDate
+FROM Patients p
+LEFT JOIN Appointments a ON p.PatientID = a.PatientID
+ORDER BY p.PatientID;
+
+-- All appointments, including if patient record was somehow missing (rare but possible for testing)
+SELECT 
+    a.AppointmentID, 
+    a.AppointmentDate, 
+    p.FirstName, p.LastName
+FROM Patients p
+RIGHT JOIN Appointments a ON p.PatientID = a.PatientID;
+
+-- All patients and all appointments (shows unmatched from both sides)
+SELECT p.PatientID, p.FirstName, p.LastName, a.AppointmentID, a.AppointmentDate
+FROM Patients p
+LEFT JOIN Appointments a ON p.PatientID = a.PatientID
+
+UNION
+
+SELECT p.PatientID, p.FirstName, p.LastName, a.AppointmentID, a.AppointmentDate
+FROM Patients p
+RIGHT JOIN Appointments a ON p.PatientID = a.PatientID
+WHERE p.PatientID IS NULL
+
+ORDER BY PatientID, AppointmentDate;
+
+
+-- 1. Admin user (full privileges)
+CREATE USER 'hims_admin'@'localhost' IDENTIFIED BY '12345678';
+
+SELECT User, Host FROM mysql.user;
+
+SELECT User, Host 
+FROM mysql.user 
+WHERE User = 'hims_admin';
+
+SHOW GRANTS FOR 'hims_admin'@'localhost'; 
+
+
+GRANT ALL PRIVILEGES ON HIMS.* TO 'hims_admin'@'localhost';
+FLUSH PRIVILEGES;
+
+--2 doctor user
+
+CREATE USER 'hims_doctor'@'localhost' IDENTIFIED BY '87654321';
+GRANT SELECT, INSERT, UPDATE ON HIMS.Patients TO 'hims_doctor'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON HIMS.Appointments TO 'hims_doctor'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON HIMS.MedicalRecords TO 'hims_doctor'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON HIMS.Prescriptions TO 'hims_doctor'@'localhost';
+GRANT SELECT ON HIMS.Doctors TO 'hims_doctor'@'localhost';
+GRANT SELECT ON HIMS.Departments TO 'hims_doctor'@'localhost';
+FLUSH PRIVILEGES;
+
+-- 3. Receptionist user (can manage patients, appointments, and bills)
+CREATE USER 'hims_reception'@'localhost' IDENTIFIED BY 'Recept@HIMS2025!';
+GRANT SELECT, INSERT, UPDATE ON HIMS.Patients TO 'hims_reception'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON HIMS.Appointments TO 'hims_reception'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON HIMS.Bills TO 'hims_reception'@'localhost';
+GRANT SELECT ON HIMS.Doctors TO 'hims_reception'@'localhost';
+GRANT SELECT ON HIMS.Departments TO 'hims_reception'@'localhost';
+FLUSH PRIVILEGES;
+
+-- 4. Accountant user (read-only on bills and financial data, limited access elsewhere)
+CREATE USER 'hims_accountant'@'localhost' IDENTIFIED BY 'Acct@HIMS2025!';
+GRANT SELECT, UPDATE (Paid) ON HIMS.Bills TO 'hims_accountant'@'localhost';
+GRANT SELECT ON HIMS.Patients TO 'hims_accountant'@'localhost';
+GRANT SELECT ON HIMS.Appointments TO 'hims_accountant'@'localhost';
+FLUSH PRIVILEGES;
+
+-- 5. Read-only user (e.g., for reporting or auditor)
+CREATE USER 'hims_viewer'@'localhost' IDENTIFIED BY 'View@HIMS2025!';
+GRANT SELECT ON HIMS.* TO 'hims_viewer'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Revoke all privileges from the accountant (e.g., role change or termination)
+REVOKE ALL PRIVILEGES ON HIMS.* FROM 'hims_accountant'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Temporarily revoke UPDATE on Bills for receptionist (e.g., during audit)
+REVOKE UPDATE ON HIMS.Bills FROM 'hims_reception'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Revoke INSERT/UPDATE on MedicalRecords from a doctor (e.g., suspended doctor)
+REVOKE INSERT, UPDATE ON HIMS.MedicalRecords FROM 'hims_doctor'@'localhost';
+REVOKE INSERT, UPDATE ON HIMS.Prescriptions FROM 'hims_doctor'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Completely remove a user (e.g., staff left the hospital)
+DROP USER 'hims_accountant'@'localhost';
+
+-- Step 4: Re-grant privileges if needed (example: restore receptionist's bill update right)
+GRANT UPDATE ON HIMS.Bills TO 'hims_reception'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Final check: List all users in the system
+SELECT User, Host FROM mysql.user WHERE User LIKE 'hims_%';
+
+-- to login with user account
+mysql -u hims_doctor -p -h localhost  --if u use command client MySQL /MariaDB
+
+mysql -u hims_doctor -p  if u use command line or terminal
+
+
+
+
+
